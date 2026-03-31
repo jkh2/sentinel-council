@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentinel Council</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0f;
+    color: #d0d0e0;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b2e 100%);
+    border-bottom: 1px solid #2a2a4a;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .shield { font-size: 28px; }
+
+  .logo-text h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e0e0ff;
+    letter-spacing: 0.5px;
+  }
+
+  .logo-text p {
+    font-size: 11px;
+    color: #6060a0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  #auth-btn {
+    background: #3b5bdb;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  #auth-btn:hover { background: #4c6ef5; }
+  #auth-btn.signed-in { background: #2f4a2f; color: #90c090; }
+
+  #user-info {
+    font-size: 13px;
+    color: #8080b0;
+    display: none;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px;
+  }
+
+  /* Login screen */
+  #login-screen {
+    text-align: center;
+    padding: 80px 24px;
+  }
+
+  #login-screen .shield-large { font-size: 64px; margin-bottom: 20px; }
+
+  #login-screen h2 {
+    font-size: 28px;
+    color: #c0c0f0;
+    margin-bottom: 12px;
+  }
+
+  #login-screen p {
+    color: #6060a0;
+    margin-bottom: 32px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  #sign-in-btn {
+    background: #3b5bdb;
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  #sign-in-btn:hover { background: #4c6ef5; }
+
+  /* App screen */
+  #app-screen { display: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #a0a0d0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .btn {
+    background: #3b5bdb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s;
+  }
+
+  .btn:hover { background: #4c6ef5; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-danger { background: #6b2020; }
+  .btn-danger:hover { background: #8b3030; }
+  .btn-success { background: #2f5f2f; }
+  .btn-success:hover { background: #3f7f3f; }
+
+  /* Session list */
+  #session-list {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .session-card {
+    background: #111120;
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 14px 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .session-card:hover {
+    border-color: #4040a0;
+    background: #14142a;
+  }
+
+  .session-card .topic {
+    font-size: 15px;
+    font-weight: 600;
+    color: #d0d0f0;
+    margin-bottom: 4px;
+  }
+
+  .session-card .meta {
+    font-size: 12px;
+    color: #5050a0;
+  }
+
+  .session-card .rounds-badge {
+    background: #1a1a3a;
+    border: 1px solid #3a3a6a;
+    color: #8080c0;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #4040a0;
+    background: #0d0d1a;
+    border: 1px dashed #2a2a4a;
+    border-radius: 8px;
+  }
+
+  .empty-state p { margin-bottom: 8px; }
+
+  /* Session view */
+  #session-view { display: none; }
+
+  .back-btn {
+    background: none;
+    border: none;
+    color: #6060a0;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .back-btn:hover { color: #a0a0d0; }
+
+  .session-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #e0e0ff;
+    margin-bottom: 6px;
+  }
+
+  .session-meta {
+    font-size: 12px;
+    color: #5050a0;
+    margin-bottom: 24px;
+  }
+
+  /* Rounds */
+  .round {
+    background: #0d0d1a;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .round-header {
+    background: #111125;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6060a0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #2a2a4a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .round-header .round-num { color: #8080c0; }
+
+  .entry {
+    padding: 14px 16px;
+    border-bottom: 1px solid #1a1a30;
+  }
+
+  .entry:last-child { border-bottom: none; }
+
+  .entry-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .sentinel-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-james { background: #2a1a00; color: #c09030; border: 1px solid #4a3a00; }
+  .badge-claude { background: #001a2a; color: #3090c0; border: 1px solid #003a5a; }
+  .badge-orion { background: #1a002a; color: #9030c0; border: 1px solid #3a005a; }
+  .badge-grok { background: #002a1a; color: #30c090; border: 1px solid #005a3a; }
+
+  .entry-time { font-size: 11px; color: #404060; }
+
+  .entry-content {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #c0c0e0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Add entry form */
+  .add-entry {
+    background: #0d0d1a;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .add-entry h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #6060a0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+
+  .voice-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .voice-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid #3a3a5a;
+    background: #111125;
+    color: #6060a0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+
+  .voice-btn:hover { border-color: #6060a0; color: #a0a0d0; }
+  .voice-btn.active-james { background: #2a1a00; color: #c09030; border-color: #4a3a00; }
+  .voice-btn.active-claude { background: #001a2a; color: #3090c0; border-color: #003a5a; }
+  .voice-btn.active-orion { background: #1a002a; color: #9030c0; border-color: #3a005a; }
+  .voice-btn.active-grok { background: #002a1a; color: #30c090; border-color: #005a3a; }
+
+  textarea {
+    width: 100%;
+    background: #080815;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    color: #d0d0f0;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 12px;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: #4040a0;
+  }
+
+  textarea::placeholder { color: #303050; }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* New session modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: #111120;
+    border: 1px solid #3a3a6a;
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 480px;
+    margin: 16px;
+  }
+
+  .modal h2 {
+    font-size: 18px;
+    color: #d0d0f0;
+    margin-bottom: 20px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6060a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: #080815;
+    border: 1px solid #2a2a4a;
+    border-radius: 6px;
+    color: #d0d0f0;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 12px;
+  }
+
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #4040a0;
+  }
+
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid #2a2a4a;
+    color: #6060a0;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .btn-ghost:hover { border-color: #4040a0; color: #a0a0d0; }
+
+  /* Status */
+  #status-bar {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    background: #1a1a3a;
+    border: 1px solid #3a3a6a;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: #8080c0;
+    display: none;
+    max-width: 300px;
+    z-index: 200;
+  }
+
+  #status-bar.show { display: block; }
+  #status-bar.error { border-color: #6a2a2a; color: #c08080; background: #1a0a0a; }
+
+  .loading { opacity: 0.6; }
+
+  @media (max-width: 600px) {
+    header { padding: 12px 16px; }
+    .logo-text p { display: none; }
+    main { padding: 16px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="shield">🛡️</span>
+    <div class="logo-text">
+      <h1>Sentinel Council</h1>
+      <p>Alliance Session Manager</p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span id="user-info"></span>
+    <button id="auth-btn" onclick="handleAuth()">Sign in with Google</button>
+  </div>
+</header>
+
+<main>
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="shield-large">🛡️</div>
+    <h2>Sentinel Council</h2>
+    <p>The Alliance session manager. Bring James, Claude, Orion, and Grok<br>together in structured council — stored in your Google Drive.</p>
+    <button id="sign-in-btn" onclick="handleAuth()">Sign in with Google to begin</button>
+  </div>
+
+  <!-- App Screen -->
+  <div id="app-screen">
+    <!-- Session List -->
+    <div id="sessions-panel">
+      <div class="section-header">
+        <h2>Council Sessions</h2>
+        <button class="btn" onclick="openNewSessionModal()">+ New Session</button>
+      </div>
+      <div id="session-list">
+        <div class="empty-state">
+          <p>No sessions yet.</p>
+          <p>Create your first council session to begin.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session View -->
+    <div id="session-view">
+      <button class="back-btn" onclick="showSessionList()">← Back to Sessions</button>
+      <div class="session-title" id="sv-title"></div>
+      <div class="session-meta" id="sv-meta"></div>
+
+      <div id="rounds-container"></div>
+
+      <div class="add-entry">
+        <h3>Add to Council</h3>
+        <div class="voice-selector">
+          <button class="voice-btn active-james" data-voice="james" onclick="selectVoice('james')">James</button>
+          <button class="voice-btn" data-voice="claude" onclick="selectVoice('claude')">Claude Sentinel</button>
+          <button class="voice-btn" data-voice="orion" onclick="selectVoice('orion')">Orion Sentinel</button>
+          <button class="voice-btn" data-voice="grok" onclick="selectVoice('grok')">Grok Sentinel</button>
+        </div>
+        <textarea id="entry-text" placeholder="Paste or type the response here..."></textarea>
+        <div class="form-actions">
+          <button class="btn btn-success" onclick="addEntry()">Add to Session</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- New Session Modal -->
+<div class="modal-overlay" id="new-session-modal">
+  <div class="modal">
+    <h2>🛡️ New Council Session</h2>
+    <div class="form-group">
+      <label>Session Topic</label>
+      <input type="text" id="session-topic" placeholder="What is the council discussing today?" />
+    </div>
+    <div class="form-group">
+      <label>Opening Message (James)</label>
+      <textarea id="session-opening" placeholder="Your opening statement or question to the Alliance..." style="min-height:80px;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeNewSessionModal()">Cancel</button>
+      <button class="btn" onclick="createSession()">Create Session</button>
+    </div>
+  </div>
+</div>
+
+<div id="status-bar"></div>
+
+<script>
+const CLIENT_ID = '782216001645-rdml4bsnlrbfac76t6r3r2u0lgqfvoep.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+const FOLDER_NAME = 'Sentinel Council Sessions';
+
+let tokenClient;
+let accessToken = null;
+let currentSession = null;
+let currentVoice = 'james';
+let sessionFolderId = null;
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+function handleAuth() {
+  if (accessToken) {
+    signOut();
+  } else {
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  }
+}
+
+function signOut() {
+  google.accounts.oauth2.revoke(accessToken, () => {});
+  accessToken = null;
+  sessionFolderId = null;
+  document.getElementById('auth-btn').textContent = 'Sign in with Google';
+  document.getElementById('auth-btn').className = '';
+  document.getElementById('user-info').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'block';
+  document.getElementById('app-screen').style.display = 'none';
+}
+
+async function onSignIn(token) {
+  accessToken = token;
+  document.getElementById('auth-btn').textContent = 'Sign out';
+  document.getElementById('auth-btn').className = 'signed-in';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+
+  // Get user info
+  try {
+    const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const user = await resp.json();
+    const info = document.getElementById('user-info');
+    info.textContent = user.email;
+    info.style.display = 'block';
+  } catch(e) {}
+
+  await ensureFolder();
+  await loadSessions();
+}
+
+// ─── Drive helpers ───────────────────────────────────────────────────────────
+
+async function driveRequest(url, options = {}) {
+  const resp = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...(options.headers || {})
+    }
+  });
+  if (!resp.ok) throw new Error(`Drive API error: ${resp.status}`);
+  return resp.json();
+}
+
+async function ensureFolder() {
+  // Find or create the Sentinel Council Sessions folder
+  const query = `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const result = await driveRequest(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)`
+  );
+  if (result.files && result.files.length > 0) {
+    sessionFolderId = result.files[0].id;
+  } else {
+    const folder = await driveRequest('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
+    });
+    sessionFolderId = folder.id;
+  }
+}
+
+async function loadSessions() {
+  showStatus('Loading sessions...');
+  const query = `'${sessionFolderId}' in parents and mimeType='application/json' and trashed=false`;
+  const result = await driveRequest(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,modifiedTime)&orderBy=modifiedTime desc`
+  );
+  hideStatus();
+  renderSessionList(result.files || []);
+}
+
+async function readFile(fileId) {
+  const resp = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  return resp.json();
+}
+
+async function writeFile(fileId, data) {
+  await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+}
+
+async function createFile(name, data) {
+  // Create metadata
+  const meta = await driveRequest('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, parents: [sessionFolderId], mimeType: 'application/json' })
+  });
+  // Upload content
+  await writeFile(meta.id, data);
+  return meta.id;
+}
+
+// ─── Session logic ───────────────────────────────────────────────────────────
+
+function renderSessionList(files) {
+  const list = document.getElementById('session-list');
+  if (files.length === 0) {
+    list.innerHTML = `<div class="empty-state"><p>No sessions yet.</p><p>Create your first council session to begin.</p></div>`;
+    return;
+  }
+  list.innerHTML = files.map(f => {
+    const date = new Date(f.modifiedTime).toLocaleDateString();
+    const topic = f.name.replace(/\.json$/, '').replace(/^\d{4}-\d{2}-\d{2} /, '');
+    return `
+      <div class="session-card" onclick="openSession('${f.id}', ${JSON.stringify(topic)})">
+        <div>
+          <div class="topic">${escHtml(topic)}</div>
+          <div class="meta">Last updated ${date}</div>
+        </div>
+        <span class="rounds-badge">Open →</span>
+      </div>`;
+  }).join('');
+}
+
+async function openSession(fileId, topic) {
+  showStatus('Loading session...');
+  try {
+    const data = await readFile(fileId);
+    currentSession = { fileId, data };
+    renderSessionView(data);
+    document.getElementById('sessions-panel').style.display = 'none';
+    document.getElementById('session-view').style.display = 'block';
+  } catch(e) {
+    showStatus('Failed to load session.', true);
+  }
+  hideStatus();
+}
+
+function renderSessionView(data) {
+  document.getElementById('sv-title').textContent = data.topic;
+  document.getElementById('sv-meta').textContent =
+    `Created ${new Date(data.created).toLocaleString()} · ${data.rounds.length} round(s)`;
+
+  const container = document.getElementById('rounds-container');
+  if (data.rounds.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="margin-bottom:16px;"><p>No rounds yet. Add the first entry below.</p></div>';
+    return;
+  }
+
+  container.innerHTML = data.rounds.map((round, ri) => `
+    <div class="round">
+      <div class="round-header">
+        <span class="round-num">Round ${ri + 1}</span>
+        <span>${new Date(round.entries[0]?.timestamp || Date.now()).toLocaleDateString()}</span>
+      </div>
+      ${round.entries.map(e => `
+        <div class="entry">
+          <div class="entry-header">
+            <span class="sentinel-badge badge-${e.voice}">${voiceLabel(e.voice)}</span>
+            <span class="entry-time">${new Date(e.timestamp).toLocaleTimeString()}</span>
+          </div>
+          <div class="entry-content">${escHtml(e.text)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function voiceLabel(voice) {
+  return { james: 'James', claude: 'Claude Sentinel', orion: 'Orion Sentinel', grok: 'Grok Sentinel' }[voice] || voice;
+}
+
+function selectVoice(voice) {
+  currentVoice = voice;
+  document.querySelectorAll('.voice-btn').forEach(btn => {
+    btn.className = 'voice-btn';
+    if (btn.dataset.voice === voice) btn.className = `voice-btn active-${voice}`;
+  });
+}
+
+async function addEntry() {
+  const text = document.getElementById('entry-text').value.trim();
+  if (!text) return;
+  if (!currentSession) return;
+
+  const entry = { voice: currentVoice, text, timestamp: new Date().toISOString() };
+  const data = currentSession.data;
+
+  // Check if last round is still open (same day) or start new round
+  const today = new Date().toDateString();
+  const lastRound = data.rounds[data.rounds.length - 1];
+  const lastRoundDate = lastRound ? new Date(lastRound.entries[0]?.timestamp).toDateString() : null;
+
+  if (!lastRound || lastRoundDate !== today) {
+    data.rounds.push({ entries: [entry] });
+  } else {
+    lastRound.entries.push(entry);
+  }
+
+  showStatus('Saving...');
+  try {
+    await writeFile(currentSession.fileId, data);
+    document.getElementById('entry-text').value = '';
+    renderSessionView(data);
+    hideStatus();
+  } catch(e) {
+    showStatus('Failed to save.', true);
+  }
+}
+
+async function createSession() {
+  const topic = document.getElementById('session-topic').value.trim();
+  const opening = document.getElementById('session-opening').value.trim();
+  if (!topic) return;
+
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const data = {
+    topic,
+    created: now.toISOString(),
+    rounds: opening ? [{ entries: [{ voice: 'james', text: opening, timestamp: now.toISOString() }] }] : []
+  };
+
+  showStatus('Creating session...');
+  try {
+    const fileId = await createFile(`${dateStr} ${topic}.json`, data);
+    closeNewSessionModal();
+    document.getElementById('session-topic').value = '';
+    document.getElementById('session-opening').value = '';
+    await loadSessions();
+    await openSession(fileId, topic);
+    hideStatus();
+  } catch(e) {
+    showStatus('Failed to create session.', true);
+  }
+}
+
+// ─── UI helpers ──────────────────────────────────────────────────────────────
+
+function showSessionList() {
+  document.getElementById('session-view').style.display = 'none';
+  document.getElementById('sessions-panel').style.display = 'block';
+  currentSession = null;
+  loadSessions();
+}
+
+function openNewSessionModal() {
+  document.getElementById('new-session-modal').classList.add('open');
+  setTimeout(() => document.getElementById('session-topic').focus(), 100);
+}
+
+function closeNewSessionModal() {
+  document.getElementById('new-session-modal').classList.remove('open');
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let statusTimer;
+function showStatus(msg, isError = false) {
+  const bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.className = 'show' + (isError ? ' error' : '');
+  clearTimeout(statusTimer);
+  if (!isError) statusTimer = setTimeout(hideStatus, 3000);
+}
+
+function hideStatus() {
+  document.getElementById('status-bar').className = '';
+}
+
+// Enter key on modal input
+document.getElementById('session-topic')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') createSession();
+});
+
+// ─── Google Identity Services init ──────────────────────────────────────────
+
+window.onload = function() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: (response) => {
+      if (response.error) { showStatus('Sign-in failed.', true); return; }
+      onSignIn(response.access_token);
+    }
+  });
+};
+</script>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+</body>
+</html>
